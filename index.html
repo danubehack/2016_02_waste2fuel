@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/interface.css" type="text/css">
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
+    
+    <title>Biomass app</title>
+    
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://openlayers.org/en/v3.20.0/build/ol.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.14/proj4.js"></script>
+    <!--<script type="text/javascript" src="js/interface.js"></script>-->
+    <script type="text/javascript">
+        $(document).ready(
+            function () {
+                $('body').on('click', '#add-site-btn', function() {
+                    $('#add-site').modal('show');
+                });
+                
+                function ShowMessage(message, messagetype) {
+                    var cssclass;
+                    switch (messagetype) {
+                        case 'Success':
+                            cssclass = 'alert-success'
+                            break;
+                        case 'Error':
+                            cssclass = 'alert-danger'
+                            break;
+                        case 'Warning':
+                            cssclass = 'alert-warning'
+                            break;
+                        default:
+                            cssclass = 'alert-info'
+                    }
+                    $('body').append('<div class="messagealert"><div id="alert_div" style="margin: 0 0.5%; -webkit-box-shadow: 3px 4px 6px #999;" class="alert fade in ' + cssclass + '"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + messagetype + '!</strong> <span>' + message + '</span></div></div>');
+
+                    setTimeout(function () {
+                        $("#alert_div").fadeTo(1000, 500).slideUp(500, function () {
+                            $("#alert_div").remove();
+                        });
+                      }, 1500);//5000=5 seconds
+                }
+
+                $('body').on('submit', '#add_site-frm', function(event) {
+                    event.preventDefault();
+                    
+                    $.ajax({
+                        url: 'insert.php',
+                        /*data: {
+                            desc: $('#desc').val(),
+                            volume: $('#volume').val(),
+                            contact: $('#contact').val(),
+                            file: $('#file').val()
+                        },*/
+                        dataType: 'json',
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        data: new FormData(this),
+                        type: 'post',
+                        success: function(data) {
+                            if (data.success == true) {
+                                console.log(data);
+                                $('#add-site').modal('toggle');
+                                ShowMessage('Success!', 'Success');
+                            } else {
+                                ShowMessage('Error inserting data!', 'Error');
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, errorThrown) { 
+                            //console.log(xhr);
+                        }
+                    });
+                });
+                
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Biomass app</a>
+                </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#" id="add-site-btn">Add biomass site</a></li>
+                    </ul>
+                    <!--<form class="navbar-form navbar-left" role="search">
+                        <div class="form-group">
+                            <div class="col-xs-10">
+                                <input class="form-control" type="text" placeholder="Enter text" id="example-text-input">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-default">Search</button>
+                    </form>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Show <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Sites to pick up</a></li>
+                                <li><a href="#">Picked up sites</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#">List of picked up sites</a></li>
+                            </ul>
+                        </li>
+                    </ul>-->
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
+        </nav>
+    </div>
+    <div id="add-site"  style="display:none;" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <form id="add_site-frm" role="form" enctype="multipart/form-data" action="" method="post">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Add biomass site</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="desc" class="col-xs-3 col-form-label">Description</label>
+                            <input class="form-control" type="text" placeholder="Description" name="desc" id="desc"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="volume" class="col-xs-3 col-form-label">Volume</label>
+                            <input class="form-control" type="text" placeholder="Volume" name="volume" id="volume"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact" class="col-xs-3 col-form-label">Contact</label>
+                            <input class="form-control" type="text" placeholder="Contact" name="contact" id="contact"/>
+                        </div>
+                        <div>
+                            <label for="file" class="col-xs-3 col-form-label">Image</label>
+                            <input type="file" accept="image/*;capture=camera" name="file" id="file">
+                        </div>
+                        <br/>
+                        <button type="button" id="location" class="btn btn-default">Location</button>
+                        <input id="y" type="hidden" name="y" >
+                        <input id="x" type="hidden" name="x" >
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" id="add-site-submit" class="btn btn-default">Insert</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="feat-info"  style="display:none;" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Feature info</h4>
+                </div>
+                <div id="feat-info-body" class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="navbar-offset"></div>
+    <div id="map" class="map">
+        <script src="js/map.js" ></script>
+    </div>
+    <div class="row main-row">
+        <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">
+            <div class="panel-group sidebar-body" id="accordion-left">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#layers">
+                                <i class="fa fa-list-alt"></i>
+                                Base layers
+                            </a>
+                            <span class="pull-right slide-submenu">
+                                <i class="fa fa-chevron-left"></i>
+                            </span>
+                        </h4>
+                    </div>
+                    <div id="layers" class="panel-collapse collapse in">
+                        <div class="panel-body list-group">
+                            <a href="#" id="l-osm" class="list-group-item active">
+                                <i class="fa fa-globe"></i> Open Street Map
+                            </a>
+                            <a href="#" id="l-clc" class="list-group-item">
+                                <i class="fa fa-globe"></i> Corine Land Cover
+                            </a>
+                            <a href="#" id="l-olm" class="list-group-item">
+                                <i class="fa fa-globe"></i> Open Land Use
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#layers">
+                                <i class="fa fa-list-alt"></i>
+                                Overlays
+                            </a>
+                            <span class="pull-right slide-submenu">
+                                <i class="fa fa-chevron-left"></i>
+                            </span>
+                        </h4>
+                    </div>
+                    <div id="layers" class="panel-collapse collapse in">
+                        <div class="panel-body list-group">
+                            <a href="#" id="l-sites" class="list-group-item active">
+                                <i class="fa fa-globe"></i> Biomass sites</a>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#properties">
+                                <i class="fa fa-list-alt"></i>
+                                Properties
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="properties" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <p>
+                                Lorem ipsum dolor sit amet, vel an wisi propriae. Sea ut graece gloriatur. Per ei quando dicant vivendum. An insolens appellantur eos, doctus convenire vis et, at solet aeterno intellegebat qui.
+                            </p>
+                            <p>
+                                Elitr minimum inciderint qui no. Ne mea quaerendum scriptorem consequuntur. Mel ea nobis discere dignissim, aperiam patrioque ei ius. Stet laboramus eos te, his recteque mnesarchum an, quo id adipisci salutatus. Quas solet inimicus eu per. Sonet conclusionemque id vis.
+                            </p>
+                            <p>
+                                Eam vivendo repudiandae in, ei pri sint probatus. Pri et lorem praesent periculis, dicam singulis ut sed. Omnis patrioque sit ei, vis illud impetus molestiae id. Ex viderer assentior mel, inani liber officiis pro et. Qui ut perfecto repudiandae, per no hinc tation labores.
+                            </p>
+                            <p>
+                                Pro cu scaevola antiopam, cum id inermis salutatus. No duo liber gloriatur. Duo id vitae decore, justo consequat vix et. Sea id tale quot vitae.
+                            </p>
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <div class="mini-submenu mini-submenu-left pull-left">
+        <i class="fa fa-list-alt"></i>
+    </div>
+  </body>
+</html>
